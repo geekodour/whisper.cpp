@@ -1,0 +1,104 @@
+This is comparison between whisper.cpp and faster-whisper. The faster-whisper readme has some benchmarks on the readme but wanted to test it myself. For whisper, I just ran manually. For faster-whisper, wrote [[https://github.com/guillaumekln/faster-whisper/issues/365][this small script]]
+- https://github.com/guillaumekln/faster-whisper/
+- https://github.com/ggerganov/whisper.cpp
+- quanitization w faster-whisper: https://opennmt.net/CTranslate2/quantization.html
+- quantization w whisper.cpp: https://github.com/ggerganov/whisper.cpp#quantization
+
+* whisper.cpp
+- ./main -bs 5 -p 2  -f steve2.wav -m models/ggml-small.en.bin
+  - Total 8 CPU threads on my 12 core machine
+  - -bs 2 : actually performs better about 10s faster.
+- Audio length: ~2m
+- Beam size: https://github.com/openai/whisper/discussions/1314
+- Changing threads/processor count had minimal effects.
+** CPU
+*** small (46s)
+#+begin_src
+load time =   210.93 ms
+fallbacks =   0 p /   0 h
+mel time =   534.97 ms
+sample time =  4601.12 ms /   773 runs (    5.95 ms per run)
+encode time = 24789.57 ms /     3 runs ( 8263.19 ms per run)
+decode time = 15115.56 ms /   761 runs (   19.86 ms per run)
+total time = 46346.90 ms
+#+end_src
+*** medium (2m)
+#+begin_src
+load time =   581.65 ms
+fallbacks =   0 p /   0 h
+mel time =   582.50 ms
+sample time =  6143.45 ms /   659 runs (    9.32 ms per run)
+encode time = 68596.05 ms /     2 runs (34298.02 ms per run)
+decode time = 37984.16 ms /   651 runs (   58.35 ms per run)
+total time = 130021.68 ms
+#+end_src
+*** large (4m)
+#+begin_src
+load time =  1128.55 ms
+fallbacks =   0 p /   0 h
+mel time =   531.48 ms
+sample time = 10956.46 ms /   667 runs (   16.43 ms per run)
+encode time = 137022.25 ms /     2 runs (68511.12 ms per run)
+decode time = 76914.08 ms /   659 runs (  116.71 ms per run)
+total time = 253307.20 ms
+#+end_src
+** GPU
+*** small (30s)
+#+begin_src
+fallbacks =   0 p /   0 h
+mel time =   554.00 ms
+sample time =  5255.80 ms /   774 runs (    6.79 ms per run)
+encode time =  4691.07 ms /     3 runs ( 1563.69 ms per run)
+decode time = 16272.99 ms /   762 runs (   21.36 ms per run)
+total time = 29835.26 ms
+#+end_src
+*** medium (1.14m)
+#+begin_src
+load time =  5175.25 ms
+fallbacks =   0 p /   0 h
+mel time =   535.35 ms
+sample time =  7234.65 ms /   659 runs (   10.98 ms per run)
+encode time = 10368.82 ms /     2 runs ( 5184.41 ms per run)
+decode time = 42721.30 ms /   651 runs (   65.62 ms per run)
+total time = 73852.74 ms
+#+end_src
+*** large (2m)
+#+begin_src
+load time =  2050.85 ms
+fallbacks =   0 p /   0 h
+mel time =   572.59 ms
+sample time = 11943.09 ms /   667 runs (   17.91 ms per run)
+encode time = 16994.45 ms /     2 runs ( 8497.23 ms per run)
+decode time = 78852.77 ms /   659 runs (  119.66 ms per run)
+total time = 123859.55 ms
+#+end_src
+* faster-whisper
+- ~2min audio
+- See [[https://github.com/guillaumekln/faster-whisper/issues/365][script]]
+** CPU
+*** Small
+- small.en-cpu-int8 : 14.0
+*** Med
+- medium-cpu-int8 : 43.1
+*** L1
+- large-v1-cpu-int8 : 76.0
+*** L2
+- large-v2-cpu-int8 : 75.4
+** GPU
+*** Small
+- small.en-cuda-int8 : 5.3
+- small.en-cuda-float16 : 2.5
+- small.en-cuda-int8_float16 : 2.8
+*** Med
+- medium-cuda-int8 : 7.7
+- medium-cuda-float16 : 6.1
+- medium-cuda-int8_float16 : 6.2
+*** L1
+- large-v1-cuda-int8 : 12.9
+- large-v1-cuda-float16 : 9.8
+- large-v1-cuda-int8_float16 : 10.6
+*** L2
+- large-v2-cuda-int8 : 12.5
+- large-v2-cuda-float16 : 9.2
+- large-v2-cuda-int8_float16 : 10.6
+
